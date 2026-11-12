@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2016 sqlmap developers (http://sqlmap.org/)
-See the file 'doc/COPYING' for copying permission
+Copyright (c) 2006-2026 sqlmap developers (https://sqlmap.org)
+See the file 'LICENSE' for copying permission
 """
 
 import re
@@ -25,7 +25,7 @@ def setDbms(dbms):
 
     hashDBWrite(HASHDB_KEYS.DBMS, dbms)
 
-    _ = "(%s)" % ("|".join([alias for alias in SUPPORTED_DBMS]))
+    _ = "(%s)" % ('|'.join(SUPPORTED_DBMS))
     _ = re.search(r"\A%s( |\Z)" % _, dbms, re.I)
 
     if _:

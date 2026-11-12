@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2016 sqlmap developers (http://sqlmap.org/)
-See the file 'doc/COPYING' for copying permission
+Copyright (c) 2006-2026 sqlmap developers (https://sqlmap.org)
+See the file 'LICENSE' for copying permission
 """
 
 from lib.core.common import Backend
@@ -31,7 +31,6 @@ class Enumeration(Custom, Databases, Entries, Search, Users):
         kb.data.banner = None
         kb.data.hostname = ""
         kb.data.processChar = None
-        kb.data.characterSet = None
 
         Custom.__init__(self)
         Databases.__init__(self)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2016 sqlmap developers (http://sqlmap.org/)
-See the file 'doc/COPYING' for copying permission
+Copyright (c) 2006-2026 sqlmap developers (https://sqlmap.org)
+See the file 'LICENSE' for copying permission
 """
 
 from lib.core.data import logger
@@ -10,48 +10,47 @@ from lib.core.exception import SqlmapUnsupportedFeatureException
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
 class Enumeration(GenericEnumeration):
-    def __init__(self):
-        GenericEnumeration.__init__(self)
-
     def getCurrentUser(self):
         warnMsg = "on SQLite it is not possible to enumerate the current user"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
     def getCurrentDb(self):
         warnMsg = "on SQLite it is not possible to get name of the current database"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
-    def isDba(self):
+    def isDba(self, user=None):
         warnMsg = "on SQLite the current user has all privileges"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
+
+        return True
 
     def getUsers(self):
         warnMsg = "on SQLite it is not possible to enumerate the users"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         return []
 
     def getPasswordHashes(self):
         warnMsg = "on SQLite it is not possible to enumerate the user password hashes"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         return {}
 
-    def getPrivileges(self, *args):
+    def getPrivileges(self, *args, **kwargs):
         warnMsg = "on SQLite it is not possible to enumerate the user privileges"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         return {}
 
     def getDbs(self):
         warnMsg = "on SQLite it is not possible to enumerate databases (use only '--tables')"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         return []
 
     def searchDb(self):
         warnMsg = "on SQLite it is not possible to search databases"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         return []
 
@@ -61,4 +60,10 @@ class Enumeration(GenericEnumeration):
 
     def getHostname(self):
         warnMsg = "on SQLite it is not possible to enumerate the hostname"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
+
+    def getStatements(self):
+        warnMsg = "on SQLite it is not possible to enumerate the SQL statements"
+        logger.warning(warnMsg)
+
+        return []

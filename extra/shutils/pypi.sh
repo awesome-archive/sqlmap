@@ -1,18 +1,26 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+if [ ! -f ~/.pypirc ]; then
+    echo "File ~/.pypirc is missing"
+    exit 1
+fi
 
 declare -x SCRIPTPATH="${0}"
 SETTINGS="${SCRIPTPATH%/*}/../../lib/core/settings.py"
 VERSION=$(cat $SETTINGS | grep -E "^VERSION =" | cut -d '"' -f 2 | cut -d '.' -f 1-3)
 TYPE=pip
-TMP_DIR=/tmp/pypi
-mkdir $TMP_DIR
-cd $TMP_DIR
-cat > $TMP_DIR/setup.py << EOF
+TMP_DIR="$(mktemp -d -t pypi.XXXXXXXX)"
+cleanup() { rm -rf -- "${TMP_DIR:?}"; }
+trap cleanup EXIT
+cd "$TMP_DIR"
+cat > "$TMP_DIR/setup.py" << EOF
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2016 sqlmap developers (http://sqlmap.org/)
-See the file 'doc/COPYING' for copying permission
+Copyright (c) 2006-2026 sqlmap developers (https://sqlmap.org)
+See the file 'LICENSE' for copying permission
 """
 
 from setuptools import setup, find_packages
@@ -20,13 +28,21 @@ from setuptools import setup, find_packages
 setup(
     name='sqlmap',
     version='$VERSION',
-    description="Automatic SQL injection and database takeover tool",
+    description='Automatic SQL injection and database takeover tool',
+    long_description=open('README.rst').read(),
+    long_description_content_type='text/x-rst',
     author='Bernardo Damele Assumpcao Guimaraes, Miroslav Stampar',
     author_email='bernardo@sqlmap.org, miroslav@sqlmap.org',
     url='https://sqlmap.org',
+    project_urls={
+        'Documentation': 'https://github.com/sqlmapproject/sqlmap/wiki',
+        'Source': 'https://github.com/sqlmapproject/sqlmap/',
+        'Tracker': 'https://github.com/sqlmapproject/sqlmap/issues',
+    },
     download_url='https://github.com/sqlmapproject/sqlmap/archive/$VERSION.zip',
     license='GNU General Public License v2 (GPLv2)',
-    packages=find_packages(),
+    packages=['sqlmap'],
+    package_dir={'sqlmap':'sqlmap'},
     include_package_data=True,
     zip_safe=False,
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -47,6 +63,10 @@ setup(
     },
 )
 EOF
+cat > "$TMP_DIR/setup.cfg" << "EOF"
+[bdist_wheel]
+universal = 1
+EOF
 wget "https://github.com/sqlmapproject/sqlmap/archive/$VERSION.zip" -O sqlmap.zip
 unzip sqlmap.zip
 rm sqlmap.zip
@@ -55,8 +75,8 @@ cat > sqlmap/__init__.py << EOF
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2016 sqlmap developers (http://sqlmap.org/)
-See the file 'doc/COPYING' for copying permission
+Copyright (c) 2006-2026 sqlmap developers (https://sqlmap.org)
+See the file 'LICENSE' for copying permission
 """
 
 import os
@@ -69,7 +89,7 @@ cat > README.rst << "EOF"
 sqlmap
 ======
 
-|Build Status| |Python 2.6|2.7| |License| |Twitter|
+|Python 2.7|3.x| |License| |X|
 
 sqlmap is an open source penetration testing tool that automates the
 process of detecting and exploiting SQL injection flaws and taking over
@@ -107,11 +127,11 @@ If you prefer fetching daily updates, you can download sqlmap by cloning the
 
 ::
 
-    git clone https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
+    git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
 
 sqlmap works out of the box with
-`Python <http://www.python.org/download/>`__ version **2.6.x** and
-**2.7.x** on any platform.
+`Python <http://www.python.org/download/>`__ version **2.7** and
+**3.x** on any platform.
 
 Usage
 -----
@@ -120,24 +140,24 @@ To get a list of basic options and switches use:
 
 ::
 
-    python sqlmap.py -h
+    sqlmap -h
 
 To get a list of all options and switches use:
 
 ::
 
-    python sqlmap.py -hh
+    sqlmap -hh
 
 You can find a sample run `here <https://asciinema.org/a/46601>`__. To
 get an overview of sqlmap capabilities, list of supported features and
 description of all options and switches, along with examples, you are
 advised to consult the `user's
-manual <https://github.com/sqlmapproject/sqlmap/wiki>`__.
+manual <https://github.com/sqlmapproject/sqlmap/wiki/Usage>`__.
 
 Links
 -----
 
--  Homepage: http://sqlmap.org
+-  Homepage: https://sqlmap.org
 -  Download:
    `.tar.gz <https://github.com/sqlmapproject/sqlmap/tarball/master>`__
    or `.zip <https://github.com/sqlmapproject/sqlmap/zipball/master>`__
@@ -147,31 +167,30 @@ Links
 -  User's manual: https://github.com/sqlmapproject/sqlmap/wiki
 -  Frequently Asked Questions (FAQ):
    https://github.com/sqlmapproject/sqlmap/wiki/FAQ
--  Mailing list subscription:
-   https://lists.sourceforge.net/lists/listinfo/sqlmap-users
--  Mailing list RSS feed:
-   http://rss.gmane.org/messages/complete/gmane.comp.security.sqlmap
--  Mailing list archive:
-   http://news.gmane.org/gmane.comp.security.sqlmap
--  Twitter: [@sqlmap](https://twitter.com/sqlmap)
+-  X: https://x.com/sqlmap
 -  Demos: http://www.youtube.com/user/inquisb/videos
 -  Screenshots: https://github.com/sqlmapproject/sqlmap/wiki/Screenshots
 
-.. |Build Status| image:: https://api.travis-ci.org/sqlmapproject/sqlmap.svg?branch=master
-   :target: https://api.travis-ci.org/sqlmapproject/sqlmap
-.. |Python 2.6|2.7| image:: https://img.shields.io/badge/python-2.6|2.7-yellow.svg
+.. |Python 2.7|3.x| image:: https://img.shields.io/badge/python-2.7|3.x-yellow.svg
    :target: https://www.python.org/
 .. |License| image:: https://img.shields.io/badge/license-GPLv2-red.svg
-   :target: https://raw.githubusercontent.com/sqlmapproject/sqlmap/master/doc/COPYING
-.. |Twitter| image:: https://img.shields.io/badge/twitter-@sqlmap-blue.svg
-   :target: https://twitter.com/sqlmap
+   :target: https://raw.githubusercontent.com/sqlmapproject/sqlmap/master/LICENSE
+.. |X| image:: https://img.shields.io/badge/x-@sqlmap-blue.svg
+   :target: https://x.com/sqlmap
 
 .. pandoc --from=markdown --to=rst --output=README.rst sqlmap/README.md
 .. http://rst.ninjs.org/
 EOF
 sed -i "s/^VERSION =.*/VERSION = \"$VERSION\"/g" sqlmap/lib/core/settings.py
 sed -i "s/^TYPE =.*/TYPE = \"$TYPE\"/g" sqlmap/lib/core/settings.py
-sed -i "s/.*lib\/core\/settings\.py/`md5sum sqlmap/lib/core/settings.py | cut -d ' ' -f 1`  lib\/core\/settings\.py/g" sqlmap/txt/checksum.md5
-for file in $(find sqlmap -type f | grep -v -E "\.(git|yml)"); do echo include $file >> MANIFEST.in; done
-python setup.py sdist upload
-rm -rf $TMP_DIR
+: > MANIFEST.in
+while IFS= read -r -d '' file; do
+    case "$file" in
+        *.git|*.yml) continue ;;
+    esac
+    echo "include $file" >> MANIFEST.in
+done < <(find sqlmap -type f -print0)
+python setup.py sdist bdist_wheel
+twine check dist/*
+twine upload --config-file=~/.pypirc dist/*
+rm -rf "$TMP_DIR"

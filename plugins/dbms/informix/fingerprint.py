@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2016 sqlmap developers (http://sqlmap.org/)
-See the file 'doc/COPYING' for copying permission
+Copyright (c) 2006-2026 sqlmap developers (https://sqlmap.org)
+See the file 'LICENSE' for copying permission
 """
 
 from lib.core.common import Backend
@@ -44,9 +44,11 @@ class Fingerprint(GenericFingerprint):
         value += "active fingerprint: %s" % actVer
 
         if kb.bannerFp:
-            banVer = kb.bannerFp["dbmsVersion"] if 'dbmsVersion' in kb.bannerFp else None
-            banVer = Format.getDbms([banVer])
-            value += "\n%sbanner parsing fingerprint: %s" % (blank, banVer)
+            banVer = kb.bannerFp.get("dbmsVersion")
+
+            if banVer:
+                banVer = Format.getDbms([banVer])
+                value += "\n%sbanner parsing fingerprint: %s" % (blank, banVer)
 
         htmlErrorFp = Format.getErrorParsedDBMSes()
 
@@ -56,7 +58,7 @@ class Fingerprint(GenericFingerprint):
         return value
 
     def checkDbms(self):
-        if not conf.extensiveFp and (Backend.isDbmsWithin(INFORMIX_ALIASES) or (conf.dbms or "").lower() in INFORMIX_ALIASES):
+        if not conf.extensiveFp and Backend.isDbmsWithin(INFORMIX_ALIASES):
             setDbms(DBMS.INFORMIX)
 
             self.getBanner()
@@ -76,9 +78,13 @@ class Fingerprint(GenericFingerprint):
 
             if not result:
                 warnMsg = "the back-end DBMS is not %s" % DBMS.INFORMIX
-                logger.warn(warnMsg)
+                logger.warning(warnMsg)
 
                 return False
+
+            # Determine if it is Informix >= 11.70
+            if inject.checkBooleanExpression("CHR(32)=' '"):
+                Backend.setVersion(">= 11.70")
 
             setDbms(DBMS.INFORMIX)
 
@@ -90,8 +96,8 @@ class Fingerprint(GenericFingerprint):
             infoMsg = "actively fingerprinting %s" % DBMS.INFORMIX
             logger.info(infoMsg)
 
-            for version in ("12.1", "11.7", "11.5"):
-                output = inject.checkBooleanExpression("EXISTS(SELECT 1 FROM SYSMASTER:SYSDUAL WHERE DBINFO('VERSION,'FULL') LIKE '%%%s%%')" % version)
+            for version in ("14.1", "12.1", "11.7", "11.5", "10.0"):
+                output = inject.checkBooleanExpression("EXISTS(SELECT 1 FROM SYSMASTER:SYSDUAL WHERE DBINFO('VERSION','FULL') LIKE '%%%s%%')" % version)
 
                 if output:
                     Backend.setVersion(version)
@@ -100,6 +106,6 @@ class Fingerprint(GenericFingerprint):
             return True
         else:
             warnMsg = "the back-end DBMS is not %s" % DBMS.INFORMIX
-            logger.warn(warnMsg)
+            logger.warning(warnMsg)
 
             return False
